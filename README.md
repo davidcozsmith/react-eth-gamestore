@@ -1,5 +1,16 @@
 # GameStore
 
+## Table of Contents
+
+1. Background
+2. SmartContracts
+3. Setup
+4. Deploy
+5. Use the React GameStore App
+6. Use the GameStore in Unity
+
+---
+
 ## Background
 
 This sample includes Ethereum SmartContracts, Unity assets and a React webapp
@@ -11,6 +22,62 @@ This sample includes Ethereum SmartContracts, Unity assets and a React webapp
 - the unity App supports both a Design time component and Runtime features
   - the design time component creates Scriptable objects representing real items on the blockchain that you can place in the game
   - the runtime component is a Store where players can purchase and activate "abilities" related to the items
+
+---
+
+## SmartContracts
+
+### GameItem
+
+- GameItem can be created, priced, and sold (transfered) via the GameStore
+
+- Essential Properties:
+
+  1. Owner
+  2. Price
+  3. Game (address of the game/store that controls it)
+
+- Sample Properties, etc - used to implement features in the game:
+
+  1. ItemKey
+  2. ItemType
+  3. ItemData
+
+  - (In this sample, ItemData is used as the modifiers of a jumping ability)
+
+---
+
+### GameStore
+
+- The game is controlled by a GameOwner
+
+  - only the GameOwner can create new items
+
+- Tracks a "StoreAccount" struct for each player account
+
+  - as items are sold, the player's store account collects the proceeds in the StoreAccount.Balance. The Player can call WithdrawBalance to retreive the funds
+
+- Methods:
+
+  - `TransferGameMaster`(address newGameMaster);
+  - `CreateGameItem`(string calldata itemKey, string calldata, itemType, string calldata itemData) external;
+  - `SetGameFactory`(IGameFactory factory)
+
+  // info methods
+
+  - `GetAllItems`()
+  - `GetAllAccounts`()
+  - `GetAccount`(address owner)
+
+  // account methods
+
+  - `RegisterAccount`(address owner)
+  - `GetMyAccount`()
+  - `PurchaseItem`(IGameItem gameItem)
+
+  // account holders can withdraw funds for the items sold
+
+  - `WithdrawBalance`()
 
 ---
 
@@ -43,7 +110,7 @@ This sample includes Ethereum SmartContracts, Unity assets and a React webapp
 
 ---
 
-## Run the app
+## Deploy
 
 ### Deploy to Blockchain
 
@@ -120,7 +187,7 @@ This sample includes Ethereum SmartContracts, Unity assets and a React webapp
 
 ---
 
-## Setup and Use the GameStore in Unity
+### Use the GameStore in Unity
 
 The unity project has both a Design time component and Runtime.
 
@@ -157,57 +224,3 @@ https://www.youtube.com/watch?v=4cF7Sl7FazE
 ![assets](./readme/012-unity-gamestore-choices.png)
 
 ---
-
-## Understand the Smart Contracts
-
-### GameItem.sol
-
-- GameItem can be created, priced, and sold (transfered) via the GameStore
-
-- Essential Properties:
-
-  1. Owner
-  2. Price
-  3. Game (address of the game/store that controls it)
-
-- Sample Properties, etc - used to implement features in the game:
-
-  1. ItemKey
-  2. ItemType
-  3. ItemData
-
-  - (In this sample, ItemData is used as the modifiers of a jumping ability)
-
----
-
-### GameStore.sol
-
-- The game is controlled by a GameOwner
-
-  - only the GameOwner can create new items
-
-- Tracks a "StoreAccount" struct for each player account
-
-  - as items are sold, the player's store account collects the proceeds in the StoreAccount.Balance. The Player can call WithdrawBalance to retreive the funds
-
-- Methods:
-
-  - `TransferGameMaster`(address newGameMaster);
-  - `CreateGameItem`(string calldata itemKey, string calldata, itemType, string calldata itemData) external;
-  - `SetGameFactory`(IGameFactory factory)
-
-  // info methods
-
-  - `GetAllItems`()
-  - `GetAllAccounts`()
-  - `GetAccount`(address owner)
-
-  // account methods
-
-  - `RegisterAccount`(address owner)
-  - `GetMyAccount`()
-  - `PurchaseItem`(IGameItem gameItem)
-
-  // account holders can withdraw funds for the items sold
-
-  - `WithdrawBalance`()
