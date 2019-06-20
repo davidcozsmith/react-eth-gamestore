@@ -1,0 +1,11 @@
+{
+  "version": "0.1.0",
+  "private": true,
+  "devDependencies": {
+    "openzeppelin-solidity": "^2.1.1"
+  },
+  "dependencies": {
+    "ganache-cli": "^6.4.3",
+    "truffle-hdwallet-provider": "1.0.6"
+  }
+}
