@@ -42,24 +42,15 @@ contract("GameStore", accounts => {
 
   before(async () => {
     console.log("creating gamestore");
-    // store = await GameStore.new();
-    // player = await GamePlayer.new('playa', store.address);
-    // await store.RegisterAccount(accounts[0]);
-    // gameAccounts = await store.GetAllAccounts();
-    // console.log('accounts', gameAccounts);
-    // assert.equal(gameAccounts[0], accounts[0], 'should have a game account registered');
-
-    // console.log(store.address);
     owner = accounts[0];
     console.log("owner", owner);
     assert.notEqual(owner, "0x0000000000000000000000000000000000000000");
-
     assert.isDefined(accounts[1]);
   });
 
   it("GetAccount and RegisterAccount, GetMyAccount", async () => {
-    const game = await GameStore.new();
-    const account = await game.GetAccount.call(accounts[0]);
+    const game = await GameStore.new(owner);
+    const account = await game.GetAccount.call(owner);
     assert.equal(account.exists, false, "account should not exist");
 
     await game.RegisterAccount(accounts[1]);
@@ -70,12 +61,12 @@ contract("GameStore", accounts => {
   });
 
   it("GetAllItems, RegisterMyItem, RegisterAccount", async () => {
-    const game = await GameStore.new();
+    const game = await GameStore.new(owner);
     const items = await game.GetAllItems.call();
     console.log(items);
     assert.equal(items.length, 0, "should be no items yet");
 
-    await game.RegisterAccount(accounts[0]);
+    await game.RegisterAccount(owner);
 
     const item = await GameItem.new(game.address, "x", "x", "x");
     await game.RegisterMyItem(item.address);
@@ -91,48 +82,75 @@ contract("GameStore", accounts => {
   });
 
   it("PurchaseItem", async () => {
-    const game = await GameStore.new();
-    await game.RegisterAccount(accounts[0]);
+    const game = await GameStore.new(owner);
+    await game.RegisterAccount(owner);
     await game.RegisterAccount(accounts[1]);
 
     const item = await GameItem.new(game.address, "x", "x", "x");
-    await item.SetPrice(1023);
     await game.RegisterMyItem(item.address);
-
+    await item.SetPrice(1023);
     await game.PurchaseItem(item.address, { from: accounts[1], value: 1023 });
   });
 
-  it("PurchaseItem:revert wrong-amount, item-not-registered, wrong-game, already-owned", async () => {
-    const game = await GameStore.new();
-    const game2 = await GameStore.new();
-    await game.RegisterAccount(accounts[0]);
+  it("PurchaseItem:revert item not registered to the store", async () => {
+    const game = await GameStore.new(owner);
+    const game2 = await GameStore.new(owner);
+    await game.RegisterAccount(owner);
+    await game2.RegisterAccount(owner);
+
+    const item = await GameItem.new(game2.address, "x", "x", "x");
+    await game2.RegisterMyItem(item.address);
+    await item.SetPrice(1023);
+
+    //try to purchase item that is registered to a different game
+    await assert.reverts(
+      game.PurchaseItem(item.address, { from: owner, value: 1023 }),
+      "Item must be registered with this game"
+    );
+  });
+
+  it("PurchaseItem:revert Item must be marked registered", async () => {
+    const game = await GameStore.new(owner);
+    await game.RegisterAccount(owner);
 
     const item = await GameItem.new(game.address, "x", "x", "x");
     await item.SetPrice(1023);
 
     //try to purchase before it is registered
-    assert.reverts(
-      game.PurchaseItem(item.address, { from: accounts[0], value: 232 }),
+    await assert.reverts(
+      game.PurchaseItem(item.address, { from: owner, value: 1023 }),
       "Item must be marked registered"
     );
+  });
 
-    //try to purchase item that is registered to a different game
-    await game2.RegisterMyItem(item.address);
-    assert.reverts(
-      game.PurchaseItem(item.address, { from: accounts[0], value: 232 }),
-      "Item must be registered with this game"
-    );
+  it("PurchaseItem:revert exact amount is required", async () => {
+    const game = await GameStore.new(owner);
+    await game.RegisterAccount(owner);
+    await game.RegisterAccount(accounts[1]);
 
-    //try to purchase my own item
-    assert.reverts(
-      game.PurchaseItem(item.address, { from: accounts[0], value: 232 }),
-      "Owner cannot purchase self-owned item"
-    );
+    const item = await GameItem.new(game.address, "x", "x", "x");
+    await game.RegisterMyItem(item.address);
+    await item.SetPrice(1023);
 
     //try to purchase with the wrong amount
-    assert.reverts(
+    await assert.reverts(
       game.PurchaseItem(item.address, { from: accounts[1], value: 232 }),
       "Exact amount is required"
+    );
+  });
+
+  it("PurchaseItem:revert cannot purchase self-owned item", async () => {
+    const game = await GameStore.new(owner);
+    await game.RegisterAccount(owner);
+
+    const item = await GameItem.new(game.address, "x", "x", "x");
+    await game.RegisterMyItem(item.address);
+    await item.SetPrice(1023);
+
+    //try to purchase my own item
+    await assert.reverts(
+      game.PurchaseItem(item.address, { from: owner, value: 1023 }),
+      "Owner cannot purchase self-owned item"
     );
   });
 });

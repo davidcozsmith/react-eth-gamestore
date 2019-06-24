@@ -10,9 +10,9 @@ contract("GamePlayer", accounts => {
 
   before(async () => {
     console.log("creating gamestore");
-    store = await GameStore.new();
-    console.log(store.address);
     owner = accounts[0];
+    store = await GameStore.new(owner);
+    console.log(store.address);
   });
 
   it("can create game player", async () => {
@@ -41,8 +41,16 @@ contract("GamePlayer", accounts => {
       "{game:data}"
     );
     const stored = await player.StoreItem(item.address);
-    // assert.equal(stored.logs[0].event, 'ItemStored', 'ItemStored event should fire.');
-    // assert.equal(stored.logs[0].args.itemAddress, item.address, 'item address should be in the event');
+    assert.equal(
+      stored.logs[0].event,
+      "ItemStored",
+      "ItemStored event should fire."
+    );
+    assert.equal(
+      stored.logs[0].args.itemAddress,
+      item.address,
+      "item address should be in the event"
+    );
   });
 
   it("player can store and discard items", async () => {

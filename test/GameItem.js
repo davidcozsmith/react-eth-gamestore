@@ -41,8 +41,11 @@ contract("GamePlayer  ", accounts => {
   let gameAccounts;
 
   before(async () => {
+    owner = accounts[0];
+    console.log("owner", owner);
+    assert.notEqual(owner, "0x0000000000000000000000000000000000000000");
     console.log("creating gamestore");
-    store = await GameStore.new();
+    store = await GameStore.new(owner);
     player = await GamePlayer.new("playa", store.address);
     await store.RegisterAccount(accounts[0]);
     gameAccounts = await store.GetAllAccounts();
@@ -54,9 +57,6 @@ contract("GamePlayer  ", accounts => {
     );
 
     console.log(store.address);
-    owner = accounts[0];
-    console.log("owner", owner);
-    assert.notEqual(owner, "0x0000000000000000000000000000000000000000");
   });
 
   it("ANYONE:can get game item props", async () => {
