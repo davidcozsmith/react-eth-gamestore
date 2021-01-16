@@ -5,7 +5,7 @@
     "openzeppelin-solidity": "^2.1.1"
   },
   "dependencies": {
-    "ganache-cli": "^6.4.3",
+    "ganache-cli": "^6.12.2",
     "truffle-hdwallet-provider": "1.0.6",
     "web3-utils": "^1.0.0-beta.55",
     "truffle-assertions": "^0.9.1"
